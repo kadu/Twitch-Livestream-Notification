@@ -7,13 +7,13 @@
 #include <sstream>
 #include <string>
 #include <cstring>
+#include "credencials.h"
 
 // Set web server port number to 80
 ESP8266WebServer server(80);
 
 // twitch connection
-const String clientId = "";
-const String clientSecret = "";
+
 const char* host = "id.twitch.tv";
 const uint16_t port = 443;
 String access_token = "";
