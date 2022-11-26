@@ -8,71 +8,17 @@
 #include <string>
 #include <cstring>
 #include "credencials.h"
+#include "HTML.h"
 
-// Set web server port number to 80
-ESP8266WebServer server(80);
+
 
 // twitch connection
-
 const char* host = "id.twitch.tv";
 const uint16_t port = 443;
 String access_token = "";
 
-//LED 
-#define PIN 2
-#define NUMPIXELS 2 
-Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
-
-String stremaerName="";
-const String postForms = R"===(
-<html>
-    <head>
-        <title>Set Streamer</title>
-        <style>
-        body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }
-        </style>
-    </head>
-    <body>
-        <h1>POST plain text to /getName/</h1><br>
-        <form method="GET" action="/getName">
-        <input type="text" name="STREAMER">
-        <input type="submit" value="Submit\">
-        </form>
-    </body>
-</html>
-)===";
-
-void hendleIndex() {  // funcao que vai enviar o HTML
-    server.send(200, "text/html", postForms);
-}
-
-void handleGetParam() {
-
-    if (server.hasArg("STREAMER")) {
-        stremaerName = server.arg("STREAMER"); // AGORA TA CERTO
-    }
-    Serial.print("Stremaer Name - ");
-    Serial.println(stremaerName);
-}
-
-void handleNotFound() {
-    String message = "File Not Found\n\n";
-    message += "URI: ";
-    message += server.uri();
-    message += "\nMethod: ";
-    message += (server.method() == HTTP_GET) ? "GET" : "POST";
-    message += "\nArguments: ";
-    message += server.args();
-    message += "\n";
-    for (uint8_t i = 0; i < server.args(); i++) {
-        message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
-    }
-    server.send(404, "text/plain", message);
-}
-
+// WifiManager config
 void wmConfig(){
-
-    
     //WiFiManager, Local intialization. Once its business is done, there is no need to keep it around
     WiFiManager wm;
     wm.resetSettings(); // reset the wifi config
@@ -91,6 +37,46 @@ void wmConfig(){
         Serial.println(WiFi.localIP());
 }
 
+// WebServer config
+ESP8266WebServer server(80); // Set web server port number to 80
+String streamerName="";
+
+void hendleIndex() {  // send HTML to the page
+    server.send(200, "text/html", postForms); // check HTML.h file
+}
+
+void handleGetParam() {
+
+    if (server.hasArg("STREAMER")) {
+        streamerName = server.arg("STREAMER"); // get the streamer name and put on the streamerName variable
+    }
+    Serial.print("Stremaer Name - ");
+    Serial.println(streamerName);
+}
+
+void handleNotFound() {
+    String message = "File Not Found\n\n";
+    message += "URI: ";
+    message += server.uri();
+    message += "\nMethod: ";
+    message += (server.method() == HTTP_GET) ? "GET" : "POST";
+    message += "\nArguments: ";
+    message += server.args();
+    message += "\n";
+    for (uint8_t i = 0; i < server.args(); i++) {
+        message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
+    }
+    server.send(404, "text/plain", message);
+}
+
+
+//LED config
+#define PIN 2
+#define NUMPIXELS 2 
+Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+
+
+
 void setup() {
     WiFi.mode(WIFI_STA); 
     Serial.begin(115200);
@@ -99,7 +85,6 @@ void setup() {
     server.on("/", hendleIndex);
     server.on("/getName", handleGetParam);
     server.onNotFound(handleNotFound);
-
     server.begin();
     Serial.println("HTTP server started");
 
@@ -114,7 +99,7 @@ void loop() {
   server.handleClient();
   WiFiClientSecure client;
   client.setInsecure();
-  if(stremaerName != ""){
+  if(streamerName != ""){
 
   if (!client.connect(host, port)) {
     Serial.println("1 connection failed");
@@ -171,9 +156,9 @@ void loop() {
     return;
   }  
 
-  Serial.println("GET /helix/streams?user_login="+stremaerName+ " HTTP/1.1");
+  Serial.println("GET /helix/streams?user_login="+streamerName+ " HTTP/1.1");
   // This will send the request to the server
-  client.println("GET /helix/streams?user_login="+stremaerName+ " HTTP/1.1");
+  client.println("GET /helix/streams?user_login="+streamerName+ " HTTP/1.1");
   client.println("Host: api.twitch.tv"); 
   client.println("Authorization: Bearer " + access_token);
   client.println("Client-Id: " + clientId);
