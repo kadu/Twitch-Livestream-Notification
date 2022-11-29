@@ -4,6 +4,7 @@
 #include <WiFiClientSecure.h>
 #include <Arduino_JSON.h>
 #include <Adafruit_NeoPixel.h>
+#include <ESP8266mDNS.h>   
 #include <sstream>
 #include <string>
 #include <cstring>
@@ -81,6 +82,13 @@ void setup() {
     WiFi.mode(WIFI_STA); 
     Serial.begin(115200);
     wmConfig();
+     if (!MDNS.begin("esp8266")) {             // Start the mDNS responder for esp8266.local
+    Serial.println("Error setting up MDNS responder!");
+    }
+   Serial.println("mDNS responder started");
+   MDNS.addService("http", "tcp", 80);
+   MDNS.notifyAPChange();
+   WiFi.hostname("esp8266");
 
     server.on("/", hendleIndex);
     server.on("/getName", handleGetParam);
@@ -92,13 +100,16 @@ void setup() {
     pixels.begin();
     pixels.clear();
     delay(500);
-
+   
 }
+
+
  
 void loop() {
   server.handleClient();
   WiFiClientSecure client;
   client.setInsecure();
+  MDNS.update();
   if(streamerName != ""){
 
   if (!client.connect(host, port)) {
