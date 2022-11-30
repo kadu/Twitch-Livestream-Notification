@@ -22,7 +22,7 @@ String access_token = "";
 void wmConfig(){
     //WiFiManager, Local intialization. Once its business is done, there is no need to keep it around
     WiFiManager wm;
-    wm.resetSettings(); // reset the wifi config
+    //wm.resetSettings(); // reset the wifi config
     
     bool res;
     res = wm.autoConnect("StarON"); // password protected ap
