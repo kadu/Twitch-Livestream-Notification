@@ -41,6 +41,7 @@ void wmConfig(){
 // WebServer config
 ESP8266WebServer server(80); // Set web server port number to 80
 String streamerName="";
+String COLOR="";
 
 void hendleIndex() {  // send HTML to the page
     server.send(200, "text/html", postForms); // check HTML.h file
@@ -51,6 +52,10 @@ void handleGetParam() {
     if (server.hasArg("STREAMER")) {
         streamerName = server.arg("STREAMER"); // get the streamer name and put on the streamerName variable
     }
+    if (server.hasArg("COLOR")) {
+        streamerName = server.arg("COLOR"); // get the COLOR
+    }
+
     Serial.print("Stremaer Name - ");
     Serial.println(streamerName);
 }
@@ -82,13 +87,13 @@ void setup() {
     WiFi.mode(WIFI_STA); 
     Serial.begin(115200);
     wmConfig();
-     if (!MDNS.begin("esp8266")) {             // Start the mDNS responder for esp8266.local
+     if (!MDNS.begin("starOn")) {             // Start the mDNS responder for esp8266.local
     Serial.println("Error setting up MDNS responder!");
     }
    Serial.println("mDNS responder started");
    MDNS.addService("http", "tcp", 80);
    MDNS.notifyAPChange();
-   WiFi.hostname("esp8266");
+   WiFi.hostname("starOn");
 
     server.on("/", hendleIndex);
     server.on("/getName", handleGetParam);

@@ -1,6 +1,10 @@
 const String postForms = R"===(
-<html lang="en">
+<html lang="pt-BR">
 <head>
+  <title>⭐on</title>
+</head>
+<body>
+  
    <div class="quadrado"><div>
   <div>
   <H1><center>STAR ON</h1><br>
@@ -17,11 +21,30 @@ const String postForms = R"===(
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Color Picker 1</title>
     <link rel="stylesheet" href="style.css">
+      
+      
+    <div class="color-picker"></div>
+    <div id="color-indicator" class="color-indicator"></div>
+    <div id="color-picker"></div>
+ 
+    <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
 
-
-    <style>
-    
-
+    <script>
+      
+        let colorIndicator = document.getElementById('color-indicator');
+        const colorPicker = new iro.ColorPicker("#color-picker", {
+            width:180, color: "#fff" ,layout: [{ component: iro.ui.Wheel }]
+        });
+        colorPicker.on('color:change', function(color) {
+            colorIndicator.style.backgroundColor = color.hexString;
+        
+          
+        });
+    </script>
+   </div>
+</body>
+</html>
+  <style>
 body{
   color:#fff;
     background: #20293c;
@@ -85,41 +108,15 @@ h2{
   border-radius: 25px;
   padding: 80px;
 }
-
 .botao{
   color:#fff;
   background: #ff00bf;
   border-radius: 5px;
    border-width: thin;
    width: 40%;
-   height:80%;
+   height:1.6em;
    border-color: #ff00bf;
 }
-    
-    </style>
-
-</head>
-<body>
-    <div class="color-picker"></div>
-    <div id="color-indicator" class="color-indicator"></div>
-    <div id="color-picker"></div>
- 
-
-    <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
-
-    <script>
-        let colorIndicator = document.getElementById('color-indicator');
-        const colorPicker = new iro.ColorPicker("#color-picker", {
-            width:180, color: "#fff"
-        });
-        colorPicker.on('color:change', function(color) {
-            colorIndicator.style.backgroundColor = color.hexString;
-        });
-    </script>
-   </div>
-</body>
-</html>
-
-
+</style>
 
 )===";
