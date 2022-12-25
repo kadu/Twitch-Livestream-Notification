@@ -9,6 +9,7 @@
 #include <WiFiManager.h>  // https://github.com/tzapu/WiFiManager
 
 
+
 #include <EEPROM.h>
 #include <ArduinoJson.h>
 #define EEPROM_SIZE 512
@@ -18,7 +19,7 @@ int jsonAddress = 4;
 String EEPROM_read(int index, int length) {
   String text = "";
   char ch = 1;
-
+ 
   for (int i = index; (i < (index + length)) && ch; ++i) {
     if (ch = EEPROM.read(i)) {
       text.concat(ch);
@@ -245,6 +246,15 @@ void handleNotFound() {
     }
     server.send(200, "text/html", message);  // check HTML.h file
 }
+
+void updateStreamerStatus() {
+  if (getTwitchToken() && handStreamerIsOn(streamerName)) {
+    isStreamerOn = true;
+  } else {
+    isStreamerOn = false;
+  }
+}
+
 
 void setup() {
   #ifdef ESP8266
