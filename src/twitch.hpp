@@ -10,8 +10,6 @@
 
 #include "./credencials.h"
 
-String Streamer
-
 WiFiClientSecure client;
 // twitch connection
 const char* host = "id.twitch.tv";
@@ -22,12 +20,10 @@ uint32_t lasTimeGetToken = 0;
 uint32_t latTimeGetStreamerOn = 0;
 bool isStreamerOn = false;
 
-
-
 bool awaitTimeOut(WiFiClientSecure* client) {
     // read back one line from server
     // Serial.println("receiving from remote server");
-    delay(500);
+   // delay(500);
     unsigned long timeout = millis();
     while (client->available() == 0) {
         if (millis() - timeout > 5000) {
@@ -106,12 +102,12 @@ bool getTwitchToken() {
 bool handStreamerIsOn(String streamerName) {
     client.stop();
     client.setInsecure();
-    delay(100);
+    delay(50);
 
     if (!client.connect("api.twitch.tv", port)) {
         Serial.println("2 connection failed");
         Serial.println("wait 5 sec...");
-      
+       // delay(5000);
         return false;
     }
 
@@ -128,33 +124,50 @@ bool handStreamerIsOn(String streamerName) {
 
     if (awaitTimeOut(&client)) return 0;
 
+    std::stringstream ss;
     bool capturing = false;
-    String response = "";
     while (client.available()) {
         char ch = static_cast<char>(client.read());
         if (ch == '{' || capturing == true || ch == '}') {
             capturing = true;
-            response.concat(ch);
+            ss << ch;
             if (ch == '}') {
                 capturing = false;
             }
         }
     }
-    Serial.println(response);//
-    Serial.println(response.length());//
-    return response.length() > 100;
-    response = "";    
+  Serial.println(String(ss.str().c_str()));
+
+
+
+    // cria um objeto JSON a partir da string
+  DynamicJsonDocument doc(1024);
+  deserializeJson(doc, String(ss.str().c_str()));
+
+  // acessa o campo "user_name" do primeiro objeto na matriz "data"
+  String user_name = doc["data"][0]["user_name"];
+
+  // imprime o valor do campo
+  Serial.println(user_name);
+
+
+
+
+    return ss.str().length() > 27;
 }
 
 bool streamerIsOn(String streamerName) {
     if (getTwitchToken()) {
         if ((millis() - latTimeGetStreamerOn) < 3000) return isStreamerOn;
         isStreamerOn = handStreamerIsOn(streamerName);
-        
         latTimeGetStreamerOn = millis();
         return isStreamerOn;
     }
     return false;
 }
+
+
+
+
 
 #endif  // TWITCH_HPP__
