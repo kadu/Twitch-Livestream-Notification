@@ -1,2 +1,2 @@
-const String clientId = "";
-const String clientSecret = "";
+const char* clientId = "";
+const char* clientSecret = "";
