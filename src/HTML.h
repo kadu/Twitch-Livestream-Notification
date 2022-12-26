@@ -25,7 +25,7 @@ body{
   <div>
   <H1 id="logo"></h1><br>
     <h2 id="info">canal<br><h2>
-    <input class="canal" id="canal" type="text" name="STREAMER" onkeydown = "if (event.keyCode == 13) document.getElementById('botao').click()">
+    <input class="canal" id="canal" type="text" maxlength="25" name="STREAMER" onkeydown = "if (event.keyCode == 13) document.getElementById('botao').click()">
      
       <div class="color-picker"></div>
       <input class="botao" id="botao" type="submit" value="SALVAR" onclick="salvar();">
