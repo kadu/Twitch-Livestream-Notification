@@ -6,76 +6,71 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 #endif
-#include <WiFiManager.h>  // https://github.com/tzapu/WiFiManager
-
-
-
-#include <EEPROM.h>
 #include <ArduinoJson.h>
+#include <EEPROM.h>
+#include <WiFiManager.h>  // https://github.com/tzapu/WiFiManager
 #define EEPROM_SIZE 512
 int metaAddress = 0;
 int metaLenght = 4;
 int jsonAddress = 4;
 String EEPROM_read(int index, int length) {
-  String text = "";
-  char ch = 1;
- 
-  for (int i = index; (i < (index + length)) && ch; ++i) {
-    if (ch = EEPROM.read(i)) {
-      text.concat(ch);
+    String text = "";
+    char ch = 1;
+
+    for (int i = index; (i < (index + length)) && ch; ++i) {
+        if (ch = EEPROM.read(i)) {
+            text.concat(ch);
+        }
     }
-  }
-  return text;
+    return text;
 }
 
 int EEPROM_write(int index, String text) {
-  for (int i = index; i < text.length() + index; ++i) {
-    EEPROM.write(i, text[i - index]);
-  }
-  EEPROM.write(index + text.length(), 0);
-  EEPROM.commit();
-  Serial.println("alterações foram salvas na memoria!");
+    for (int i = index; i < text.length() + index; ++i) {
+        EEPROM.write(i, text[i - index]);
+    }
+    EEPROM.write(index + text.length(), 0);
+    EEPROM.commit();
+    Serial.println("alterações foram salvas na memoria!");
 
-  return text.length() + 1;
+    return text.length() + 1;
 }
 
+void pulsar();
+
 DynamicJsonDocument getEEPROM_JSON() {
+    String jsonRead =
+        EEPROM_read(jsonAddress, EEPROM_read(metaAddress, metaLenght).toInt());
 
-  String jsonRead = EEPROM_read(jsonAddress,
-                                EEPROM_read(metaAddress, metaLenght).toInt());
+    Serial.print("JSON Read: ");
+    Serial.println(jsonRead);
 
-  Serial.print("JSON Read: ");
-  Serial.println(jsonRead);
+    DynamicJsonDocument jsonDoc(EEPROM_SIZE);
 
-  DynamicJsonDocument jsonDoc(EEPROM_SIZE);
+    deserializeJson(jsonDoc, jsonRead);
 
-  deserializeJson(jsonDoc, jsonRead);
-
-  return jsonDoc;
+    return jsonDoc;
 }
 
 void setEEPROM_JSON(DynamicJsonDocument jsonDoc) {
+    String jsonWriteString;
 
-  String jsonWriteString;
+    serializeJson(jsonDoc, jsonWriteString);
 
-  serializeJson(jsonDoc, jsonWriteString);
+    // Serial.print("JSON Write: ");
+    // Serial.println(jsonWriteString);
 
-  // Serial.print("JSON Write: ");
-  // Serial.println(jsonWriteString);
-
-  EEPROM_write(metaAddress,
-               (String)EEPROM_write(jsonAddress, jsonWriteString));
+    EEPROM_write(metaAddress,
+                 (String)EEPROM_write(jsonAddress, jsonWriteString));
 }
 
-
-	
 #include <cstring>
 #include <sstream>
 #include <string>
 
 #include "./HTML.h"
-#include "./style.h"
 #include "./js.h"
+#include "./style.h"
 #include "./twitch.hpp"
 
 // LED config
@@ -108,14 +103,14 @@ void wmConfig() {
         // Serial.println("Failed to connect");
         //  ESP.restart();
         Serial.println("not connected...");
-  delay(150);
-  digitalWrite(LED_BUILTIN,!digitalRead(LED_BUILTIN));
+        delay(150);
+        digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
 
     } else {
         // if you get here you have connected to the WiFi
-         Serial.println("connected...yeey :)");
+        Serial.println("connected...yeey :)");
     }
-     Serial.println(WiFi.localIP());
+    Serial.println(WiFi.localIP());
 }
 
 // WebServer config
@@ -131,42 +126,38 @@ int corG = 0;
 int corB = 0;
 int modo = 0;
 
-void hendleIndex() {                           // send HTML to the page
+void hendleIndex() {  // send HTML to the page
     Serial.println("GET /");
     server.send(200, "text/html", postForms);  // check HTML.h file
 }
 
-void handleStyle() {                           // send HTML to the page
+void handleStyle() {  // send HTML to the page
     Serial.println("GET /style.css");
     server.send(200, "text/css", style);  // check HTML.h file
 }
 
-void handlejs() {                           // send HTML to the page
+void handlejs() {  // send HTML to the page
     Serial.println("GET /js");
     server.send(200, "application/javascript", js);  // check HTML.h file
 }
 
-
-void handleStatus() {                           // send JSON to the page
-//jsonstatus = "[{\"canal\":\""+streamerName+"\",\"color\":\""+cor+"\",\"status\":\""+status+"\"}]";   
+void handleStatus() {  // send JSON to the page
+                       // jsonstatus =
+    // "[{\"canal\":\""+streamerName+"\",\"color\":\""+cor+"\",\"status\":\""+status+"\"}]";
     Serial.println("GET /staus");
-    DynamicJsonDocument jsonDoc = getEEPROM_JSON();    
+    DynamicJsonDocument jsonDoc = getEEPROM_JSON();
     const char *readcanal = jsonDoc["canal"];
     const char *readcor = jsonDoc["cor"];
-   //int r = jsonDoc["rgb"][0];
-   //int g = jsonDoc["rgb"][1];
-   //int b = jsonDoc["rgb"][2];
+    // int r = jsonDoc["rgb"][0];
+    // int g = jsonDoc["rgb"][1];
+    // int b = jsonDoc["rgb"][2];
 
-
-
-
-
-    server.send(200, "application/json", "[{\"canal\":\""+String(readcanal)+"\",\"color\":\""+String(readcor)+"\",\"status\":\""+status+"\"}]"); 
+    server.send(200, "application/json",
+                "[{\"canal\":\"" + String(readcanal) + "\",\"color\":\"" +
+                    String(readcor) + "\",\"status\":\"" + status + "\"}]");
 }
 
-
 void handleGetParam() {
-
     if (server.hasArg("STREAMER")) {
         streamerName = server.arg("STREAMER");  // get the streamer name and put
                                                 // on the streamerName variable
@@ -175,43 +166,39 @@ void handleGetParam() {
         cor = server.arg("cor");  // get the COLOR
     }
 
-
-     if (server.hasArg("r")) {
+    if (server.hasArg("r")) {
         corR = server.arg("r").toInt();  // get the COLOR
         Serial.println(corR);
     }
-     if (server.hasArg("g")) {
+    if (server.hasArg("g")) {
         corG = server.arg("g").toInt();  // get the COLOR
         Serial.println(corG);
     }
 
- if (server.hasArg("b")) {
+    if (server.hasArg("b")) {
         corB = server.arg("b").toInt();  // get the COLOR
         Serial.println(corB);
     }
 
-if (server.hasArg("STREAMER")) {
-DynamicJsonDocument jsonDoc(EEPROM_SIZE);
-  jsonDoc["canal"] = server.arg("canal");
-  jsonDoc["cor"] = server.arg("cor");
-  jsonDoc["rgb"][0] = server.arg("r").toInt();
-  jsonDoc["rgb"][1] = server.arg("g").toInt();
-  jsonDoc["rgb"][2] = server.arg("b").toInt();
+    if (server.hasArg("STREAMER")) {
+        DynamicJsonDocument jsonDoc(EEPROM_SIZE);
+        jsonDoc["canal"] = server.arg("canal");
+        jsonDoc["cor"] = server.arg("cor");
+        jsonDoc["rgb"][0] = server.arg("r").toInt();
+        jsonDoc["rgb"][1] = server.arg("g").toInt();
+        jsonDoc["rgb"][2] = server.arg("b").toInt();
 
-  setEEPROM_JSON(jsonDoc);
-}
+        setEEPROM_JSON(jsonDoc);
+    }
 
+    for (int i = 0; i < 3; i++) {  // piscar 3 vezes mostrando a cor escolhida
 
-
-
-    for (int i = 0; i < 3; i++) { // piscar 3 vezes mostrando a cor escolhida
-        
         server.handleClient();
         analogWrite(LED_R, corR);
         analogWrite(LED_G, corG);
         analogWrite(LED_B, corB);
         pixels.setPixelColor(0, corR, corG, corB);
-        pixels.show();        
+        pixels.show();
         delay(200);
 
         server.handleClient();
@@ -223,13 +210,13 @@ DynamicJsonDocument jsonDoc(EEPROM_SIZE);
         delay(200);
     }
 
-  Serial.println("GET /getname");
+    Serial.println("GET /getname");
     Serial.print("Streamer: ");
     Serial.print(streamerName);
     Serial.print(" - ");
-    Serial.print("color: " + cor + " rgb("+server.arg("r")+", "+server.arg("g")+", "+server.arg("b")+")");
+    Serial.print("color: " + cor + " rgb(" + server.arg("r") + ", " +
+                 server.arg("g") + ", " + server.arg("b") + ")");
     Serial.println("");
-
 }
 
 void handleNotFound() {
@@ -248,44 +235,44 @@ void handleNotFound() {
 }
 
 void updateStreamerStatus() {
-  if (getTwitchToken() && handStreamerIsOn(streamerName)) {
-    isStreamerOn = true;
-  } else {
-    isStreamerOn = false;
-  }
+    if (getTwitchToken() && handStreamerIsOn(streamerName.c_str())) {
+        isStreamerOn = true;
+    } else {
+        isStreamerOn = false;
+    }
 }
 
-
 void setup() {
-  #ifdef ESP8266
-  // se for esp8266, definir a frequencia do pwm em "mais de 8mil" hertz (isso ajuda a não flikar na camera)
-  // essa opção é mais pra quem for usar o staron com led rgb não endereçável, ou ligar ele numa fita não endereçável
-  analogWriteFreq(8001);   
-  #endif
+#ifdef ESP8266
+    // se for esp8266, definir a frequencia do pwm em "mais de 8mil" hertz (isso
+    // ajuda a não flikar na camera) essa opção é mais pra quem for usar o
+    // staron com led rgb não endereçável, ou ligar ele numa fita não
+    // endereçável
+    analogWriteFreq(8001);
+#endif
 
+    EEPROM.begin(EEPROM_SIZE);
+    DynamicJsonDocument jsonDoc(EEPROM_SIZE);
+    pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(LED_R, OUTPUT);
+    pinMode(LED_G, OUTPUT);
+    pinMode(LED_B, OUTPUT);
+    pinMode(GND, OUTPUT);
+    digitalWrite(GND, 0);
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+    delay(150);
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+    delay(150);
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+    delay(150);
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+    delay(150);
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+    delay(150);
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+    delay(150);
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
 
-  EEPROM.begin(EEPROM_SIZE);
-  DynamicJsonDocument jsonDoc(EEPROM_SIZE);
-  pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(LED_R, OUTPUT);
-  pinMode(LED_G, OUTPUT);
-  pinMode(LED_B, OUTPUT);
-  pinMode(GND, OUTPUT);
-  digitalWrite(GND,0);
-  digitalWrite(LED_BUILTIN,!digitalRead(LED_BUILTIN));
-  delay(150);
-  digitalWrite(LED_BUILTIN,!digitalRead(LED_BUILTIN));
-  delay(150);
-  digitalWrite(LED_BUILTIN,!digitalRead(LED_BUILTIN));
-  delay(150);
-  digitalWrite(LED_BUILTIN,!digitalRead(LED_BUILTIN));
-  delay(150);
-  digitalWrite(LED_BUILTIN,!digitalRead(LED_BUILTIN));
-  delay(150);
-  digitalWrite(LED_BUILTIN,!digitalRead(LED_BUILTIN));
-  delay(150);
-  digitalWrite(LED_BUILTIN,!digitalRead(LED_BUILTIN));
-   
     WiFi.mode(WIFI_STA);
     Serial.begin(115200);
     wmConfig();
@@ -309,21 +296,29 @@ void setup() {
 
     pixels.begin();
     pixels.clear();
-    
-   jsonDoc = getEEPROM_JSON();    
-   streamerName = String(jsonDoc["canal"]);
-   cor =  String(jsonDoc["cor"]);
-   corR = String(jsonDoc["rgb"][0]).toInt();
-   corG = String(jsonDoc["rgb"][1]).toInt();
-   corB = String(jsonDoc["rgb"][2]).toInt();
-   modo = String(jsonDoc["modo"]).toInt();
 
+    jsonDoc = getEEPROM_JSON();
+    streamerName = String(jsonDoc["canal"]);
+    cor = String(jsonDoc["cor"]);
+    corR = String(jsonDoc["rgb"][0]).toInt();
+    corG = String(jsonDoc["rgb"][1]).toInt();
+    corB = String(jsonDoc["rgb"][2]).toInt();
+    modo = String(jsonDoc["modo"]).toInt();
 }
 
 uint32_t lasTimeUpdateLed;
 uint32_t piscante = 0;
+
+uint32_t lastTimeUdpdatePrintHeap = 0;
 void loop() {
- // Serial.print("testando");
+    // Serial.print("testando");
+
+  if ((millis() - lastTimeUdpdatePrintHeap) > 400) {
+    Serial.print("Heap: ");
+    Serial.println(ESP.getFreeHeap());
+    lastTimeUdpdatePrintHeap = millis();
+  }
+
 #ifndef ESP32
     MDNS.update();
 #endif
@@ -340,9 +335,9 @@ void loop() {
             analogWrite(LED_G, corG);
             analogWrite(LED_B, corB);
             digitalWrite(GND, 0);
-            
-            pixels.setPixelColor(0, corR, corG, corB); //definir cor dos leds
-            pixels.show(); //aplicar alterações nos leds
+
+            pixels.setPixelColor(0, corR, corG, corB);  // definir cor dos leds
+            pixels.show();  // aplicar alterações nos leds
             Serial.println("TA ON");
             status = 1;
             digitalWrite(LED_BUILTIN, 0);
@@ -352,8 +347,8 @@ void loop() {
             analogWrite(LED_B, 0);
             digitalWrite(GND, 0);
             server.handleClient();
-            pixels.clear();//definir que quer apagar leds
-            pixels.show(); //aplicar alterações nos leds
+            pixels.clear();  // definir que quer apagar leds
+            pixels.show();   // aplicar alterações nos leds
             Serial.println("TA OFF");
             status = 0;
             digitalWrite(LED_BUILTIN, 1);
@@ -362,41 +357,40 @@ void loop() {
         // Serial.println("wait 5 sec...");
         // delay(5000);
     }
- if (streamerName == ""){
-   pulsar();
- }
-
+    if (streamerName == "") {
+        pulsar();
+    }
 }
 
+const int LED_PIN = LED_BUILTIN;  // LED DO ESP para feedback
+const int PERIODO = 1000;         // período em milissegundos
+int contador = 0;                 // contador para o software timer
+int intensidade = 0;              // intensidade do sinal PWM
+int direcao = 1;                  // direção do aumento da intensidade
 
-const int LED_PIN = LED_BUILTIN; //LED DO ESP para feedback
-const int PERIODO = 1000; // período em milissegundos
-int contador = 0; // contador para o software timer
-int intensidade = 0; // intensidade do sinal PWM
-int direcao = 1; // direção do aumento da intensidade
-
-
-void pulsar(){
-   // altera a intensidade do sinal PWM de acordo com o software timer
-  if (contador == 0) {
-    // se o contador estiver zerado, inicia o aumento da intensidade
-    intensidade = 0;
-    direcao = 1;
-  } else if (contador == PERIODO/2) {
-    // se o contador atingir metade do período, inicia a diminuição da intensidade
-    direcao = -1;
-  } else if (contador == PERIODO || intensidade == 0) {
-    // se o contador atingir o período ou a intensidade chegar a zero, reseta o contador e a direção
-    contador = 0;
-    direcao = 1;
-  }
-  // aplica a intensidade atual ao sinal PWM
-  analogWrite(LED_R, corR);
-  analogWrite(LED_G, corG);
-  analogWrite(LED_B, corB);
-  analogWrite(GND, intensidade);
-  analogWrite(LED_PIN, intensidade);
-  intensidade += direcao; // incrementa ou decrementa a intensidade
-  contador++; // incrementa o contador
-  delay(4); // espera por 4 milissegundo antes de continuar o loop
+void pulsar() {
+    // altera a intensidade do sinal PWM de acordo com o software timer
+    if (contador == 0) {
+        // se o contador estiver zerado, inicia o aumento da intensidade
+        intensidade = 0;
+        direcao = 1;
+    } else if (contador == PERIODO / 2) {
+        // se o contador atingir metade do período, inicia a diminuição da
+        // intensidade
+        direcao = -1;
+    } else if (contador == PERIODO || intensidade == 0) {
+        // se o contador atingir o período ou a intensidade chegar a zero,
+        // reseta o contador e a direção
+        contador = 0;
+        direcao = 1;
+    }
+    // aplica a intensidade atual ao sinal PWM
+    analogWrite(LED_R, corR);
+    analogWrite(LED_G, corG);
+    analogWrite(LED_B, corB);
+    analogWrite(GND, intensidade);
+    analogWrite(LED_PIN, intensidade);
+    intensidade += direcao;  // incrementa ou decrementa a intensidade
+    contador++;              // incrementa o contador
+    delay(4);  // espera por 4 milissegundo antes de continuar o loop
 }
