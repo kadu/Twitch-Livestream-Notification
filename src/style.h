@@ -1,4 +1,4 @@
-char style[] PROGMEM = R"===(
+const char style[] PROGMEM = R"===(
 .color-picker{
     position: relative;
 }

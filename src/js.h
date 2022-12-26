@@ -1,4 +1,4 @@
- char js[] PROGMEM = R"===(
+ const char js[] PROGMEM = R"===(
  function atualizar2() {
 
   let xhr = new XMLHttpRequest();
