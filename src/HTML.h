@@ -88,7 +88,7 @@ body{
       
 
       var xmlhttp = new XMLHttpRequest();
-             xmlhttp.open("GET", `/getname?slot=1&canal=${document.getElementById('canal').value}&STREAMER=${document.getElementById('canal').value}&cor=${cor.slice(1)}&r=${hexToRgb(cor).r}&g=${hexToRgb(cor).g}&b=${hexToRgb(cor).b}`);
+             xmlhttp.open("GET", `/getname?slot=1&canal=${document.getElementById('canal').value.trim()}&STREAMER=${document.getElementById('canal').value}&cor=${cor.slice(1)}&r=${hexToRgb(cor).r}&g=${hexToRgb(cor).g}&b=${hexToRgb(cor).b}`);
              xmlhttp.send(null);
               console.log("----------------------------------------")
               console.log("Cor enviada: "+"R:"+hexToRgb(cor).r+"  "+"G:"+hexToRgb(cor).g+"  "+"B:"+hexToRgb(cor).b+cor.slice(1))
