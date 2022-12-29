@@ -379,9 +379,9 @@ void setup() {
   modo = String(modochar).toInt();
 
 
-//saveData("clientId","92ik7xg65gjxz85i0qpb9q3itrr6jw");
-delay(10);
-//saveData("clientSecret","05qjy82xhtkbnorfeqrrx5wf7254eq");
+//saveData("clientId","xxxxxxxxxxxxxxxxxxxxxxxxx");
+//delay(10);
+//saveData("clientSecret","xxxxxxxxxxxxxxxxxxxxxxxx");
 }
 
 uint32_t lasTimeUpdateLed;
