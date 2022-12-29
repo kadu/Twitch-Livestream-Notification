@@ -13,6 +13,18 @@
 int metaAddress = 0;
 int metaLenght = 4;
 int jsonAddress = 4;
+
+#include <Preferences.h>
+#include <string.h>
+char* clientIdRead; // Declaração do ponteiro global
+char* clientSecretRead; // Declaração do ponteiro global
+String clientSecret;
+String clientId;
+
+#include "./credencials.h"
+
+
+
 String EEPROM_read(int index, int length) {
     String text = "";
     char ch = 1;
@@ -42,8 +54,10 @@ DynamicJsonDocument getEEPROM_JSON() {
     String jsonRead =
         EEPROM_read(jsonAddress, EEPROM_read(metaAddress, metaLenght).toInt());
 
-    Serial.print("JSON Read: ");
-    Serial.println(jsonRead);
+    Serial.print("Dados salvos: ");
+    Serial.print("Streamer: "+String(readData("STREAMER")));
+    Serial.print(" RGB("+String(readData("R"))+",");
+   Serial.print( String(readData("G"))+","+String(readData("B"))+") cor: #"+String(readData("cor")));
 
     DynamicJsonDocument jsonDoc(EEPROM_SIZE);
 
@@ -57,8 +71,8 @@ void setEEPROM_JSON(DynamicJsonDocument jsonDoc) {
 
     serializeJson(jsonDoc, jsonWriteString);
 
-    // Serial.print("JSON Write: ");
-    // Serial.println(jsonWriteString);
+    Serial.print("JSON Write: ");
+    Serial.println(jsonWriteString);
 
     EEPROM_write(metaAddress,
                  (String)EEPROM_write(jsonAddress, jsonWriteString));
@@ -121,6 +135,7 @@ ESP8266WebServer server(80);  // Set web server port number to 80
 #endif
 String streamerName = "";
 String cor = "";
+String userName = "null";
 int corR = 0;
 int corG = 0;
 int corB = 0;
@@ -151,45 +166,93 @@ void handleStatus() {  // send JSON to the page
     // int r = jsonDoc["rgb"][0];
     // int g = jsonDoc["rgb"][1];
     // int b = jsonDoc["rgb"][2];
-
+if(streamerName.equalsIgnoreCase(userName)){
     server.send(200, "application/json",
-                "[{\"canal\":\"" + String(readcanal) + "\",\"color\":\"" +
-                    String(readcor) + "\",\"status\":\"" + status + "\"}]");
+                "[{\"canal\":\"" +String(readData("STREAMER"))+ "\",\"color\":\"" +
+                    String(readData("cor")) + "\",\"status\":\"" + status + "\"}]");
+}
+else{
+    server.send(200, "application/json",
+                "[{\"canal\":\"" + String(readData("STREAMER")) + "\",\"color\":\"" +
+                    String(readData("cor")) + "\",\"status\":\"" + status + "\"}]");
+
+}
+
 }
 
 void handleGetParam() {
     if (server.hasArg("STREAMER")) {
+      if(!server.arg("STREAMER").equalsIgnoreCase(streamerName)){
         streamerName = server.arg("STREAMER");  // get the streamer name and put
                                                 // on the streamerName variable
+        
+        saveData("STREAMER",server.arg("STREAMER").c_str());
+        Serial.print(" Salvando nome "); 
+    }                       
     }
     if (server.hasArg("cor")) {
+        
+        if(!server.arg("cor").equalsIgnoreCase(cor)){
         cor = server.arg("cor");  // get the COLOR
+        saveData("cor",server.arg("cor").c_str());
+        Serial.print(" Salvando cor "); 
+    }       
+
     }
 
     if (server.hasArg("r")) {
+      if(corR != server.arg("r").toInt()){
+        const char* CR = server.arg("r").c_str();
         corR = server.arg("r").toInt();  // get the COLOR
-        Serial.println(corR);
+        Serial.print(" Salvando R: "+corR);
+   
+        saveData("R",CR);
+       // Serial.print(" Salvando R "); 
+        }
     }
     if (server.hasArg("g")) {
+           if(corR != server.arg("g").toInt()){
+        const char* CG = server.arg("g").c_str();
         corG = server.arg("g").toInt();  // get the COLOR
-        Serial.println(corG);
+        Serial.print(" Salvando G: "+corG);
+        saveData("G",CG);
+       // Serial.print(" Salvando R "); 
+        }
     }
 
     if (server.hasArg("b")) {
+          if(corB != server.arg("b").toInt()){
+        const char* CB = server.arg("b").c_str();
         corB = server.arg("b").toInt();  // get the COLOR
-        Serial.println(corB);
+        Serial.print(" Salvando B: "+corB);
+        saveData("B",CB);
+       // Serial.print(" Salvando R "); 
+        }
     }
 
-    if (server.hasArg("STREAMER")) {
-        DynamicJsonDocument jsonDoc(EEPROM_SIZE);
-        jsonDoc["canal"] = server.arg("canal");
-        jsonDoc["cor"] = server.arg("cor");
-        jsonDoc["rgb"][0] = server.arg("r").toInt();
-        jsonDoc["rgb"][1] = server.arg("g").toInt();
-        jsonDoc["rgb"][2] = server.arg("b").toInt();
 
-        setEEPROM_JSON(jsonDoc);
+
+    if (server.hasArg("clientId")) {
+        clientId = server.arg("clientId");  // get the streamer name and put
+                                                // on the streamerName variable
+        
+        saveDataString("clientId",String(server.arg("clientId")));
+        Serial.print(" Salvando clientId "); 
+                           
     }
+
+        if (server.hasArg("clientSecret")) {
+        clientSecret = server.arg("clientSecret");  // get the streamer name and put
+                                                    // on the streamerName variable
+        
+        saveDataString("clientSecret",String(server.arg("clientSecret")));
+        Serial.print(" Salvando clientSecret "); 
+                           
+    }
+
+
+ 
+
 
     for (int i = 0; i < 3; i++) {  // piscar 3 vezes mostrando a cor escolhida
 
@@ -210,13 +273,13 @@ void handleGetParam() {
         delay(200);
     }
 
-    Serial.println("GET /getname");
+ //   Serial.println("GET /getname");
     Serial.print("Streamer: ");
     Serial.print(streamerName);
     Serial.print(" - ");
-    Serial.print("color: " + cor + " rgb(" + server.arg("r") + ", " +
-                 server.arg("g") + ", " + server.arg("b") + ")");
-    Serial.println("");
+    Serial.println("color: " + cor + " rgb(" + server.arg("r") + ", " +
+                 server.arg("g") + ", " + server.arg("b")+")");
+    Serial.println(") COR: #"+ String(readData("cor")));
 }
 
 void handleNotFound() {
@@ -243,6 +306,11 @@ void updateStreamerStatus() {
 }
 
 void setup() {
+
+ 
+  //clientId, clientSecret
+
+
 #ifdef ESP8266
     // se for esp8266, definir a frequencia do pwm em "mais de 8mil" hertz (isso
     // ajuda a não flikar na camera) essa opção é mais pra quem for usar o
@@ -298,12 +366,22 @@ void setup() {
     pixels.clear();
 
     jsonDoc = getEEPROM_JSON();
-    streamerName = String(jsonDoc["canal"]);
-    cor = String(jsonDoc["cor"]);
-    corR = String(jsonDoc["rgb"][0]).toInt();
-    corG = String(jsonDoc["rgb"][1]).toInt();
-    corB = String(jsonDoc["rgb"][2]).toInt();
-    modo = String(jsonDoc["modo"]).toInt();
+    streamerName = String(readData("STREAMER"));;
+    cor = String(readData("cor"));
+   char* corRchar = readData("R");
+   char* corGchar = readData("G");
+   char* corBchar = readData("B");
+   char* modochar = readData("modo");
+
+  corR = String(corRchar).toInt();
+  corG = String(corGchar).toInt();
+  corB = String(corBchar).toInt();
+  modo = String(modochar).toInt();
+
+
+//saveData("clientId","92ik7xg65gjxz85i0qpb9q3itrr6jw");
+delay(10);
+//saveData("clientSecret","05qjy82xhtkbnorfeqrrx5wf7254eq");
 }
 
 uint32_t lasTimeUpdateLed;
@@ -325,7 +403,7 @@ void loop() {
 
     server.handleClient();
 
-    if (streamerName != "" && (millis() - lasTimeUpdateLed) > 300) {
+    if (streamerName != "" && (millis() - lasTimeUpdateLed) > 500) {
         // Serial.println("Recebendo stream data");
         // Serial.println(response);
         if (streamerIsOn(streamerName)) {
@@ -360,6 +438,7 @@ void loop() {
     if (streamerName == "") {
         pulsar();
     }
+
 }
 
 const int LED_PIN = LED_BUILTIN;  // LED DO ESP para feedback
@@ -394,3 +473,32 @@ void pulsar() {
     contador++;              // incrementa o contador
     delay(4);  // espera por 4 milissegundo antes de continuar o loop
 }
+
+
+void corrigirnome(){
+
+}
+
+void saveData(const char* name, const char* value) {
+  Preferences preferences;
+  preferences.begin("StarOn", false);
+  preferences.putString(name, value);
+  preferences.end(); // Gravar os dados na memória flash de forma permanente
+}
+
+void saveDataString(const char* name, String value) {
+  Preferences preferences;
+  preferences.begin("StarOn", false);
+  preferences.putString(name, value);
+  preferences.end(); // Gravar os dados na memória flash de forma permanente
+}
+
+char* readData(const char* name) {
+  static char value[32];
+  Preferences preferences;
+  preferences.begin("StarOn", false);
+  strlcpy(value, preferences.getString(name).c_str(), sizeof(value));
+  preferences.end();
+  return value;
+}
+
