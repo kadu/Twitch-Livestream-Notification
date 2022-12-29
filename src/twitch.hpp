@@ -8,7 +8,9 @@
 #else
 #include <WiFi.h>
 #endif
-
+extern String streamerName;
+extern String userName;
+//String nome = "";
 #include "./credencials.h"
 
 // WiFiClientSecure client;
@@ -22,7 +24,10 @@ uint32_t lasTimeGetToken = 0;
 uint32_t latTimeGetStreamerOn = 0;
 bool isStreamerOn = false;
 
-StaticJsonDocument<1024> doc;
+// clientId = readData("clientId");
+// clientSecret = readData("clientSecret");
+
+StaticJsonDocument<2048> doc;
 
 bool awaitTimeOut(WiFiClientSecure* client) {
     // read back one line from server
@@ -52,10 +57,19 @@ bool handGetTwitchToken(char* ass_) {
 
     https.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
-    char data[256];
+    char data[180];
+    
+strcpy(data, "client_id=");
+strcat(data, readData("clientId"));
+strcat(data, "&client_secret=");
+strcat(data, readData("clientSecret"));
+strcat(data, "&grant_type=client_credentials");
 
-    sprintf(data, "client_id=%s&client_secret=%s&grant_type=client_credentials",
-            clientId, clientSecret);
+   // sprintf(data, "client_id="+readData("clientId")+"&client_secret="+readData("clientSecret")+"&grant_type=client_credentials");//,
+            //String(readData("clientId")),String(readData("clientSecret"))));
+            //String(readData("clientId")),String(readData("clientSecret")));
+            Serial.println("clientId: "+String(readData("clientId")));
+            Serial.println("clientSecret: "+String(readData("clientSecret")));
 
     // String data = "client_id=" + String(clientId) +
     //               "&client_secret=" + String(clientSecret) +
@@ -64,14 +78,14 @@ bool handGetTwitchToken(char* ass_) {
     int httpCode = https.POST(data);
 
     if (httpCode == 0) {
-        Serial.printf("[HTTPS] POST... failed, error: %s\r",
+        Serial.printf("4[HTTPS] POST... failed, error: %s\r",
                       https.errorToString(httpCode).c_str());
         Serial.println("Error on HTTP request");
         return false;
     }
-    Serial.printf("[HTTPS] POST... code: %d len: %d \r", httpCode,
+   Serial.printf("3[HTTPS] POST... code: %d len: %d \r", httpCode,
                   https.getSize());
-
+        Serial.println(https.getString());
     if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
         String payload = https.getString();
 
@@ -84,7 +98,7 @@ bool handGetTwitchToken(char* ass_) {
 
         const char* acc = doc["access_token"];
         strcpy(ass_, acc);
-        // Serial.println(access_token);
+        Serial.println(access_token);
         return true;
     }
 
@@ -108,7 +122,7 @@ bool getTwitchToken() {
     return IS_ACESS_TOKEN_VALID();
 }
 
-bool handStreamerIsOn(const char* streamerName) {
+bool handStreamerIsOn(const char* streamer_Name) {
         BearSSL::WiFiClientSecure myClient;
     HTTPClient https;
 
@@ -116,7 +130,7 @@ bool handStreamerIsOn(const char* streamerName) {
     char url[256];
 
     sprintf(url, "https://api.twitch.tv/helix/streams?user_login=%s",
-            streamerName);
+            readData("STREAMER"));
 
     if (!https.begin(myClient, url)) {
         Serial.println("2 connection failed");
@@ -126,9 +140,13 @@ bool handStreamerIsOn(const char* streamerName) {
     }
 
     https.addHeader("Authorization", "Bearer " + String(access_token));
-    https.addHeader("Client-Id", clientId);
+    https.addHeader("Client-Id", String(readData("clientId")));
+
+    //Serial.println("solicitando "+ String(readData("clientId")));
+
+    //Serial.println("Authorization", "Bearer " + String(access_token),"Client-Id", String(clientId));
     // This will send the request to the server
-    // client.println("GET /helix/streams?user_login=" + streamerName +
+    // client.println("GET /helix/streams?user_login=" + streamer_Name +
     //                " HTTP/1.1");
     // client.println("Host: api.twitch.tv");
     // client.println("Authorization: Bearer ");
@@ -141,15 +159,15 @@ bool handStreamerIsOn(const char* streamerName) {
     int httpCode = https.GET();
 
     if (httpCode == 0) {
-        Serial.printf("[HTTPS] GET... failed, error: %s\r",
+        Serial.printf("1[HTTPS] GET... failed, error: %s\r",
                       https.errorToString(httpCode).c_str());
         Serial.println("Error on HTTP request");
         return false;
     }
 
-    Serial.printf("[HTTPS] GET... code: %d len: %d \r", httpCode,
+    Serial.printf("2[HTTPS] GET... code: %d len: %d \r", httpCode,
                   https.getSize());
-
+        Serial.println(https.getString());
     if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
         String payload = https.getString();
 
@@ -162,16 +180,36 @@ bool handStreamerIsOn(const char* streamerName) {
 
         const char* user_name = doc["data"][0]["user_name"];
         Serial.println(user_name);
+
+        userName = user_name;
+        
+        
+       String nome = String(user_name);
+       String streamer = String(streamerName);
+        //String nomelower = streamer.toLowerCase();
+        //String streamerlower = nome.toLowerCase();
+        Serial.println("");
+        Serial.println(nome.equalsIgnoreCase(streamer));
+        if(nome.equalsIgnoreCase(streamer)){
+          if(streamerName !=  user_name){
+          Serial.print("Corrigindoo nome inserido de: ["+streamerName+"] para ["+user_name+"]");
+          Serial.print("");
+          saveData("STREAMER",user_name); 
+          corrigirnome();
+                  
+          streamerName = user_name;
+        }
+  }
         return user_name != NULL;
     }
 
     return false;
 }
 
-bool streamerIsOn(String streamerName) {
+bool streamerIsOn(String streamer_Name) {
     if (getTwitchToken()) {
         if ((millis() - latTimeGetStreamerOn) < 3000) return isStreamerOn;
-        isStreamerOn = handStreamerIsOn(streamerName.c_str());
+        isStreamerOn = handStreamerIsOn(streamer_Name.c_str());
         latTimeGetStreamerOn = millis();
         return isStreamerOn;
     }
