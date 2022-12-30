@@ -22,8 +22,7 @@ String clientSecret;
 String clientId;
 
 #include "./credencials.h"
-
-
+#include "./credenciaisHTML.h"
 
 String EEPROM_read(int index, int length) {
     String text = "";
@@ -141,10 +140,7 @@ int corG = 0;
 int corB = 0;
 int modo = 0;
 
-void hendleIndex() {  // send HTML to the page
-    Serial.println("GET /");
-    server.send(200, "text/html", postForms);  // check HTML.h file
-}
+
 
 void handleStyle() {  // send HTML to the page
     Serial.println("GET /style.css");
@@ -356,6 +352,7 @@ void setup() {
     server.on("/style.css", handleStyle);
     server.on("/status", handleStatus);
     server.on("/js", handlejs);
+    server.on("/credencial", handlecredenciais);
     server.onNotFound(handleNotFound);
     server.begin();
     // Serial.println("HTTP server started");
@@ -379,9 +376,9 @@ void setup() {
   modo = String(modochar).toInt();
 
 
-//saveData("clientId","xxxxxxxxxxxxxxxxxxxxxxxxx");
-//delay(10);
-//saveData("clientSecret","xxxxxxxxxxxxxxxxxxxxxxxx");
+//saveData("clientId","");
+delay(10);
+//saveData("clientSecret","");
 }
 
 uint32_t lasTimeUpdateLed;
@@ -501,4 +498,50 @@ char* readData(const char* name) {
   preferences.end();
   return value;
 }
+
+
+void hendleIndex() {  // send HTML to the page
+    Preferences preferences;
+    preferences.begin("StarOn", false);
+    Serial.println("GET /");
+    Serial.println(preferences.getString("clientId", ""));
+    if (preferences.getString("clientId", "") != "") {//verifica se tem credenciais
+  // o valor está salvo
+  Serial.println("clientID está salvo: " + preferences.getString("clientID", ""));
+ server.send(200, "text/html", postForms);  // se tiver, levar pra página principal} else {
+  // o valor não está salvo
+  }else{
+  Serial.println("clientID não está salvo");
+     // server.send(200, "text/html", credenciais);  // se não tiver salvo,  levar pra pagina de cadastrodas credenciais
+handlecredenciais();
+}
+ preferences.end();
+}
+
+
+
+void handlecredenciais() {  // send HTML to the page
+    
+    Serial.println("GET /credenciais");
+      server.send(200, "text/html", credenciais);  // se não tiver salvo,  levar pra pagina de cadastrodas credenciais
+    if (server.hasArg("clientId")) {
+        clientId = server.arg("clientId");  // get the streamer name and put
+                                                // on the streamerName variable
+        
+        saveDataString("clientId",String(server.arg("clientId")));
+        Serial.print(" Salvando clientId "); 
+                           
+    }
+
+        if (server.hasArg("clientSecret")) {
+        clientSecret = server.arg("clientSecret");  // get the streamer name and put
+                                                    // on the streamerName variable
+        
+        saveDataString("clientSecret",String(server.arg("clientSecret")));
+        Serial.print(" Salvando clientSecret "); 
+                           
+    }
+
+}
+
 
