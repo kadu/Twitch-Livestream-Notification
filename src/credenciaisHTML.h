@@ -1,68 +1,11 @@
 char credenciais[] PROGMEM = R"===(
-<html lang="pt-BR">
-<head> 
-  <title>⭐Config StarOn</title>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⭐</text></svg>">
-  <link rel="stylesheet" href="style.css"> 
-</head>
 
-
-  <style>      
-body{
-  color:#fff;
-    background: #20293c;
-    min-height: 90vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-</style>
+  
 
  <div class="quadrado">
 
     <style>
-      svg path {
-        animation: rainbow 10s linear infinite;
-      }
-
-      @keyframes rainbow {
-        0% {
-          stroke: hsl(0, 100%, 50%);
-        }
-        10% {
-          stroke: hsl(36, 100%, 50%);
-        }
-        20% {
-          stroke: hsl(72, 100%, 50%);
-        }
-        30% {
-          stroke: hsl(108, 100%, 50%);
-        }
-        40% {
-          stroke: hsl(144, 100%, 50%);
-        }
-        50% {
-          stroke: hsl(180, 100%, 50%);
-        }
-        60% {
-          stroke: hsl(216, 100%, 50%);
-        }
-        70% {
-          stroke: hsl(252, 100%, 50%);
-        }
-        80% {
-          stroke: hsl(288, 100%, 50%);
-        }
-        90% {
-          stroke: hsl(324, 100%, 50%);
-        }
-        100% {
-          stroke: hsl(360, 100%, 50%);
-        }
-        .instructions {
+.instructions {
   color:white;
   position: absolute;
   background-color: rgba(0, 0, 1, 0.9);
@@ -282,6 +225,46 @@ transition: color 1.3s;
  
 }
 
+
+
+      svg path {
+        animation: rainbow 10s linear infinite;
+      }
+
+      @keyframes rainbow {
+        0% {
+          stroke: hsl(0, 100%, 50%);
+        }
+        10% {
+          stroke: hsl(36, 100%, 50%);
+        }
+        20% {
+          stroke: hsl(72, 100%, 50%);
+        }
+        30% {
+          stroke: hsl(108, 100%, 50%);
+        }
+        40% {
+          stroke: hsl(144, 100%, 50%);
+        }
+        50% {
+          stroke: hsl(180, 100%, 50%);
+        }
+        60% {
+          stroke: hsl(216, 100%, 50%);
+        }
+        70% {
+          stroke: hsl(252, 100%, 50%);
+        }
+        80% {
+          stroke: hsl(288, 100%, 50%);
+        }
+        90% {
+          stroke: hsl(324, 100%, 50%);
+        }
+        100% {
+          stroke: hsl(360, 100%, 50%);
+        }
       }
     </style>
   </head>
@@ -299,17 +282,17 @@ transition: color 1.3s;
 <br>
 <form action="/" method="post">
   <label for="client_id"><h2>Client <span id="info">ID:</span></label><br>
-  <input type="text" id="client_id" name="clientId" required minlength="32" pattern="[^\s]*"></h2><br>
+  <input type="text" id="client_id" name="clientId" required minlength="12" pattern="[^\s]*"></h2><br>
  
   <label for="client_secret"><h2>Secret:</label><br>
-  <input type="text" id="client_secret" name="clientSecret" required minlength="32" pattern="[^\s]*"></h2><br>
+  <input type="text" id="client_secret" name="clientSecret" required minlength="12" pattern="[^\s]*"></h2><br>
   
   <button class="botao" type="submit" value="Salvar">SALVAR</button>
 </form> 
 <br>
 <div>
-<script>
-const info = document.getElementById('info');
+  
+ <script>const info = document.getElementById('info');
 
 const instructions = {
   'pt': `Para obter o seu client_id e secret da API da Twitch, siga os seguintes passos:<br>
@@ -349,15 +332,6 @@ info.addEventListener('mouseenter', function(event) {
   instructionsElement.style.display = 'block';
 });
 </script>
-
-
-
-
-
-
-
-
-
 
 
 
