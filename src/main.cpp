@@ -21,7 +21,7 @@ char* clientSecretRead; // Declaração do ponteiro global
 String clientSecret;
 String clientId;
 
-#include "./credencials.h"
+//#include "./credencials.h"
 #include "./credenciaisHTML.h"
 
 String EEPROM_read(int index, int length) {
