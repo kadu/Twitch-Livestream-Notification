@@ -11,7 +11,7 @@
 extern String streamerName;
 extern String userName;
 //String nome = "";
-#include "./credencials.h"
+//#include "./credencials.h"
 
 // WiFiClientSecure client;
 // twitch connection
